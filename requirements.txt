@@ -1,0 +1,16 @@
+#
+####### AFL_Bot-requirements.txt #######
+#
+###### Install the latest versions of the following packages ######
+pandas
+xlrd
+xlsxwriter
+selenium
+beautifulsoup4
+requests
+lxml
+html5lib
+progress
+matplotlib
+pathlib
+#
