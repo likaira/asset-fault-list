@@ -16,6 +16,7 @@ Created on Wed Dec 18 2019
 v3 - updated to manage cookies without user input
 v4 - updated to match the new layout in the SolarWeb Analysis page
 V5 - changed the data extraction provcessing when counting the number of online inverters
+v6 - updated to run on Raspberry Pi
 """
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -33,12 +34,10 @@ print("**  Running the Fronius Inverter Counter AFL Bot script...              *
 directory = os.path.dirname(os.path.realpath(__file__))
 os.chdir(directory)
 
-#read login credentials from text file
-credentials = open('Credentials/credentials.txt', "r")
-lines = credentials.readlines()
-username = lines[0]
-password = lines[1]
-credentials.close()
+#read login credentials from Environment variables
+username = os.environ['FRONIUS_USERNAME']
+password = os.environ['FRONIUS_PASSWORD']
+
 
 #use Selenium to open Fronius and extract site ids
 print("**  Opening Fronius Solar.Web...                                        **")

@@ -11,6 +11,7 @@ v1 to v2 : Removed requirement for user to manually download csv file from Sunny
 v2 to v3 : Reduced threshold for under-performance from 80% to 75%
 v4: Implemented Selenium Built in WebDriver wait tool to wait for page to load.
 v5: Updated BOM ID's to be 6 characters long and used Selenium to extract BOM data
+v6: Implemented PhantomJS as the Selenium WebDriver. Accept Cookies on the SMA home page.
 
 Created on Wed Dec 18 2019
 @author: Li.Kaira
@@ -21,6 +22,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 import pandas as pd
 import datetime, time
@@ -45,15 +47,24 @@ credentials.close()
 #use Selenium to open Sunny Portal and extract PV data
 print("**  Opening SMA Sunny Portal...                                         **")
 try:
-    try:            #try Firefox browser
-        driver = 'Driver/geckodriver.exe'
-        browser = webdriver.Firefox(executable_path=driver)
-    except:         #try Chrome browser        
-        driver = 'Driver/chromedriver.exe'
+    try:            #try Firefox browser, in headless mode
+        driver = 'Driver/geckodriver.exe'        
+        options = Options()
+        options.headless = True
+        browser = webdriver.Firefox(executable_path=driver, options=options)    
+    except:         #try Chrome browser      
+        driver = 'Driver/chromedriver.exe'        
         browser = webdriver.chrome(executable_path=driver)
     #open SMA Sunny Portal and login
     browser.get("https://www.sunnyportal.com/Plants")
     time.sleep(5)                   #wait for page to load
+    try:        #Accept Cookies
+        browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
+        time.sleep(1)
+    except:
+        print("**  Error: Page load unsuccessful. Program will shutdown                       **")
+        browser.close()
+        exit    
     browser.find_element_by_id("txtUserName").send_keys(username)
     browser.find_element_by_id("txtPassword").send_keys(password)
     browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_MemorizePassword"]').click()
@@ -61,6 +72,7 @@ try:
     browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_LoginBtn"]').click()
     
     #sort Table by PV System column
+    print("**  Downloading Generation Data from SMA Sunny Portal...                          **")
     try:
         timeout = 30 
         WebDriverWait(browser, timeout).until(EC.presence_of_element_located((By.ID, 'DataTables_Table_0')))                  #wait for page to load            
@@ -77,7 +89,7 @@ try:
     table = soup.find_all('table')
     data = pd.read_html(str(table))
     SMAdf = data[0]
-    print("**Data extraction from SMA Sunny Portal successful.Browser will shutdown**")
+    print("**Data extraction from SMA Sunny Portal successful.          **")
     print(" ")
     browser.close()
 except:
@@ -106,8 +118,10 @@ irrad_yday = []
 bar = Bar('Downloading data from BOM.gov.au', max = len(stationId['Id']))
 
 for url in stationId['url']:
-    driver = 'Driver/geckodriver.exe'
-    browser = webdriver.Firefox(executable_path=driver)
+    driver = 'Driver/geckodriver.exe'        
+    options = Options()
+    options.headless = True
+    browser = webdriver.Firefox(executable_path=driver, options=options) 
     try:
         browser.get(url)
         time.sleep(10)
