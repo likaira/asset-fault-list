@@ -11,13 +11,14 @@ v1 to v2 : Removed requirement for user to manually download csv file from Sunny
 v2 to v3 : Reduced threshold for under-performance from 80% to 75%
 v4: Implemented Selenium Built in WebDriver wait tool to wait for page to load.
 v5: Updated BOM ID's to be 6 characters long and used Selenium to extract BOM data
-v6: Implemented PhantomJS as the Selenium WebDriver. Accept Cookies on the SMA home page.
+v6: Updated to run in headless mode. Accept Cookies on the SMA home page.
 
 Created on Wed Dec 18 2019
 @author: Li.Kaira
 """
 import requests as rq
 from selenium import webdriver
+from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -37,21 +38,24 @@ print("**  Running the SMA Sunny Portal AFL Bot script...                      *
 directory = os.path.dirname(os.path.realpath(__file__))
 os.chdir(directory)
 
-#read login credentials from text file
-credentials = open('Credentials/credentials.txt', "r")
-lines = credentials.readlines()
-username = lines[0]
-password = lines[1]
-credentials.close()
+#read login credentials from Environment variables
+username = os.environ.get('SUNNY_USERNAME')
+password = os.environ.get('SUNNY_PASSWORD')
 
 #use Selenium to open Sunny Portal and extract PV data
 print("**  Opening SMA Sunny Portal...                                         **")
 try:
     try:            #try Firefox browser, in headless mode
-        driver = 'Driver/geckodriver.exe'        
+        # driver = 'Driver/geckodriver.exe'        
+        # options = Options()
+        # options.headless = True
+        # browser = webdriver.Firefox(executable_path=driver, options=options)  
+        # display = Display(visible=0, size=(800, 600))  
+        # display.start()
+        driver = webdriver.Firefox
         options = Options()
         options.headless = True
-        browser = webdriver.Firefox(executable_path=driver, options=options)    
+        browser = webdriver.Firefox(executable_path=driver, options=options)  
     except:         #try Chrome browser      
         driver = 'Driver/chromedriver.exe'        
         browser = webdriver.chrome(executable_path=driver)
