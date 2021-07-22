@@ -131,3 +131,7 @@ dmypy.json
 # test files
 test.py
 
+# Data Folders
+Inputs/
+Output/
+

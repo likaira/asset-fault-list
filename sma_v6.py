@@ -16,6 +16,8 @@ v6: Updated to run in headless mode. Accept Cookies on the SMA home page.
 Created on Wed Dec 18 2019
 @author: Li.Kaira
 """
+
+#import packages
 import requests as rq
 from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
@@ -41,60 +43,91 @@ os.chdir(directory)
 username = os.environ.get('SUNNY_USERNAME')
 password = os.environ.get('SUNNY_PASSWORD')
 
-#use Selenium to open Sunny Portal and extract PV data
-print("**  Opening SMA Sunny Portal...                                         **")
-try:
-    try:            #try Firefox browser, in headless mode           
-        options = Options()
-        options.headless = True
-        browser = Firefox(options=options)           
-        
-    except:         #add fail safe execution here   
-        pass   
-        # driver = 'Driver/chromedriver.exe'        
-        # browser = webdriver.chrome(executable_path=driver)
-    #open SMA Sunny Portal and login
-    browser.get("https://www.sunnyportal.com/Plants")
-    time.sleep(5)                   #wait for page to load
-    try:        #Accept Cookies
-        browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
-        time.sleep(1)
+#function definitions
+#define a function to open a webbrowser using Selenium
+def open_browser(page):
+    global browser
+    options = Options()
+    options.headless = True
+    browser = Firefox(options=options) 
+    try:
+        browser.get(page)
+        time.sleep(5)
     except:
-        print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-        browser.close()
-        exit    
+        time.sleep(30)
+        browser.get(page)
+
+#define a function to login to the site
+def login_to_portal(username, password):
     browser.find_element_by_id("txtUserName").send_keys(username)
     browser.find_element_by_id("txtPassword").send_keys(password)
     browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_MemorizePassword"]').click()
     time.sleep(2)
     browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_LoginBtn"]').click()
+
+
+#define a function that saves the Output data to a csv file
+def save_data_to_csv(data_frame): 
+    #get current date and time to use in output file name   
+    timeString = datetime.datetime.now().strftime("%Y%m%d-%H%M") 
     
-    #sort Table by PV System column
-    print("**  Downloading Generation Data from SMA Sunny Portal...                          **")
-    try:
-        timeout = 30 
-        WebDriverWait(browser, timeout).until(EC.presence_of_element_located((By.ID, 'DataTables_Table_0')))                  #wait for page to load            
-    except TimeoutException:
-        print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-        browser.close()
-        exit
-    finally:
-        browser.find_element_by_xpath('/html/body/div[4]/div/div/div[2]/table/thead/tr/th[1]/div').click()
-    #download site html source and extract table
-    time.sleep(5)                  #wait for page to load
+    #save processed data to excel file
+    folderSave = Path("Output")
+    saveName = timeString + '_SMA-Output'    
+    saveLocation = folderSave/saveName    
+    data_frame.to_csv(saveLocation, sep=',', encoding='utf-8', index=False)
+
+#Open Sunny Portal Page
+print("**  Opening SMA Sunny Portal...                                         **")
+try:
+    open_browser("https://www.sunnyportal.com/Plants")   
+    try:        #Accept Cookies (if Cookies banner exists)
+        browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
+        time.sleep(1)
+    except:
+        pass        
+except:         #add fail safe execution here   
+    print("**  Error: Page load unsuccessful. Program will shutdown                       **")
+    browser.close()  
+
+#Login to Sunny Portal    
+print("**  Logging in to SMA Sunny Portal...                                      **")
+try:
+    login_to_portal(username=username, password=password)
+except:
+    print("**  Error: Login unsuccessful. Program will shutdown                       **")
+    browser.close()
+
+#Extract PV system data from SMA Portal    
+   
+#sort Table by PV System column
+print("**  Downloading Generation Data from SMA Sunny Portal...                        **")
+try:
+    timeout = 30 
+    WebDriverWait(browser, timeout).until(EC.presence_of_element_located((By.ID, 'DataTables_Table_0')))                  #wait for page to load            
+except TimeoutException:
+    print("**  Error: Page load unsuccessful. Program will shutdown                       **")
+    browser.close()    
+finally:
+    browser.find_element_by_xpath('/html/body/div[4]/div/div/div[2]/table/thead/tr/th[1]/div').click()
+
+#download site html source and extract table
+time.sleep(5)                  #wait for page to load
+try:
     result = browser.page_source
     soup = BeautifulSoup(result, 'lxml')
     table = soup.find_all('table')
     data = pd.read_html(str(table))
     SMAdf = data[0]
-    print("**Data extraction from SMA Sunny Portal successful.          **")
+    print("**Data extraction from SMA Sunny Portal successful.                  **")
+    save_data_to_csv(SMAdf)
     print(SMAdf)
     print(" ")
     browser.close()
 except:
     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
     browser.close()
-    exit
+exit
 
 # #import station Ids from external csv file and format to be 6 digits long
 # stationId = pd.read_csv("Inputs/BOM-url.csv", header=0)
