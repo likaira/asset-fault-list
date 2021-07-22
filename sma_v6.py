@@ -26,6 +26,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
+from run_browser import open_browser
+from bom_reader import get_bom_data
+from save_to_csv import save_pd_data_frame_to_csv
 import pandas as pd
 import datetime, time
 import os
@@ -44,21 +47,9 @@ username = os.environ.get('SUNNY_USERNAME')
 password = os.environ.get('SUNNY_PASSWORD')
 
 #function definitions
-#define a function to open a webbrowser using Selenium
-def open_browser(page):
-    global browser
-    options = Options()
-    options.headless = True
-    browser = Firefox(options=options) 
-    try:
-        browser.get(page)
-        time.sleep(5)
-    except:
-        time.sleep(30)
-        browser.get(page)
 
-#define a function to login to the site
-def login_to_portal(username, password):
+#define a function to login to Sunny Portal
+def login_to_portal(browser, username, password):
     browser.find_element_by_id("txtUserName").send_keys(username)
     browser.find_element_by_id("txtPassword").send_keys(password)
     browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_MemorizePassword"]').click()
@@ -66,34 +57,23 @@ def login_to_portal(username, password):
     browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_LoginBtn"]').click()
 
 
-#define a function that saves the Output data to a csv file
-def save_data_to_csv(data_frame): 
-    #get current date and time to use in output file name   
-    timeString = datetime.datetime.now().strftime("%Y%m%d-%H%M") 
-    
-    #save processed data to excel file
-    folderSave = Path("Output")
-    saveName = timeString + '_SMA-Output'    
-    saveLocation = folderSave/saveName    
-    data_frame.to_csv(saveLocation, sep=',', encoding='utf-8', index=False)
-
 #Open Sunny Portal Page
 print("**  Opening SMA Sunny Portal...                                         **")
 try:
-    open_browser("https://www.sunnyportal.com/Plants")   
+    browser = open_browser("https://www.sunnyportal.com/Plants")   
     try:        #Accept Cookies (if Cookies banner exists)
         browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
         time.sleep(1)
     except:
         pass        
-except:         #add fail safe execution here   
+except:         #fail safe execution   
     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-    browser.close()  
+    browser.close()
 
 #Login to Sunny Portal    
 print("**  Logging in to SMA Sunny Portal...                                      **")
 try:
-    login_to_portal(username=username, password=password)
+    login_to_portal(browser=browser, username=username, password=password)
 except:
     print("**  Error: Login unsuccessful. Program will shutdown                       **")
     browser.close()
@@ -119,108 +99,45 @@ try:
     table = soup.find_all('table')
     data = pd.read_html(str(table))
     SMAdf = data[0]
-    print("**Data extraction from SMA Sunny Portal successful.                  **")
-    save_data_to_csv(SMAdf)
-    print(SMAdf)
+    print("**Data extraction from SMA Sunny Portal successful.                  **")    
     print(" ")
     browser.close()
 except:
     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
     browser.close()
-exit
 
-# #import station Ids from external csv file and format to be 6 digits long
-# stationId = pd.read_csv("Inputs/BOM-url.csv", header=0)
-# stationId['Id']=stationId['Id'].apply(lambda x: '{0:0>6}'.format(x)) 
-
-# #add unique station url to stationId dataframe
-# base_url = "http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=193&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num="
-# stationId['url'] = base_url + stationId['Id']
-
-# #get day and month forr use in extracting yesterday's radiation data
-# today = datetime.date.today()
-# month = today.month
-# day=today.day
-
-# #initiliase counter
-# index = 0
-# irrad_yday = []
-
-# #Open bom.gov.au,extract values Solar exposure tables and save as a new colum in stationId dataframe
-# bar = Bar('Downloading data from BOM.gov.au', max = len(stationId['Id']))
-
-# for url in stationId['url']:
-#     driver = 'Driver/geckodriver.exe'        
-#     options = Options()
-#     options.headless = True
-#     browser = webdriver.Firefox(executable_path=driver, options=options) 
-#     try:
-#         browser.get(url=url)
-#         time.sleep(10)
-#         BOMdata = browser.page_source
-#         soup = BeautifulSoup(BOMdata, 'lxml')    
-#         BOMtable = soup.find_all('table')[0]
-#         BOMdf = pd.read_html(str(BOMtable))[0]
-#         irrad_value = BOMdf.iat[day-1,month]/3.6                    
-#         #irrad_value = BOMdf.iat[30,9]
-#         irrad_yday.append(irrad_value) 
-#     except:
-#         print("**  Error: Page load unsuccessful.                        **")
-#         irrad_value = 0 
-#         irrad_yday.append(irrad_value) 
-#     browser.close()    
-#     index = index + 1
-#     bar.next()
-
-# stationId['irrad_yday'] = irrad_yday
-# bar.finish()
+#Get weather data from BOM
+link_to_stationIds = "Inputs/sunny_portal_bom_urls.csv"
+bom_data = get_bom_data(link_to_stationIds)
    
-# #drop unwanted columns from SMAdf: 4th Column and onwards 
-# length = len(SMAdf.columns)
-# drop_cols = list(range(3,length))
-# SMAdf.drop(SMAdf.columns[drop_cols], axis = 1, inplace=True)
+#drop unwanted columns from SMAdf: 4th Column and onwards 
+length = len(SMAdf.columns)
+drop_cols = list(range(3,length))
+SMAdf.drop(SMAdf.columns[drop_cols], axis = 1, inplace=True)
 
-# #combine SMAdf and stationId dataframes to new dataframae: SMAsiteList
-# SMAsiteList = pd.merge(SMAdf, stationId, on='PV System')
-# unwantedColumns = [3,4]
-# SMAsiteList.drop(SMAsiteList.columns[unwantedColumns], axis = 1, inplace=True)
-# SMAsiteList.iloc[:,2] = pd.to_numeric(SMAsiteList.iloc[:,2], errors='coerce')  #convert SMA generation data to numeric values
-# actual_kWh = SMAsiteList.columns[2]
+#combine SMAdf and bom_data dataframes to new dataframae: SMAsiteList
+SMAsiteList = pd.merge(SMAdf, bom_data, on='PV System')
+unwantedColumns = [3,4]
+SMAsiteList.drop(SMAsiteList.columns[unwantedColumns], axis = 1, inplace=True)
+SMAsiteList.iloc[:,2] = pd.to_numeric(SMAsiteList.iloc[:,2], errors='coerce')  #convert SMA generation data to numeric values
+actual_kWh = SMAsiteList.columns[2]
 
-# #calculate expected PV generation for yesterday
-# #kWh/m^2 * m^2/kW * kW * efficiency
-# #assumed 6.5 for m^2/kW and 0.15 for efficiency
-# SMAsiteList['expected_kWh'] = SMAsiteList['irrad_yday'] * 6.5 * SMAsiteList['PV system power[kW]'] * 0.15
+#calculate expected PV generation for previous day
+#kWh/m^2 * m^2/kW * kW * efficiency
+#assumed 6.5 for m^2/kW and 0.15 for efficiency
+SMAsiteList['expected_kWh'] = SMAsiteList['irrad_yday'] * 6.5 * SMAsiteList['PV system power[kW]'] * 0.15
 
-# #calculate ratio of actual generation to expected generation
-# SMAsiteList['Generation_Ratio'] = SMAsiteList[actual_kWh]/SMAsiteList['expected_kWh']
-# SMAsiteList['Generation_Ratio'].fillna(0, inplace=True)
+#calculate ratio of actual generation to expected generation
+SMAsiteList['Generation_Ratio'] = SMAsiteList[actual_kWh]/SMAsiteList['expected_kWh']
+SMAsiteList['Generation_Ratio'].fillna(0, inplace=True)
 
-# #output site list with generation values less 75% of expected values
-# SMAlowGen = SMAsiteList.loc[SMAsiteList['Generation_Ratio'] < 0.75].copy()
-# SMAlowGen.sort_values(by=['Generation_Ratio'], inplace=True)
-# #print("Sites with actual generation values less than 75% of expected values: ")
+#output site list with generation values less 75% of expected values
+SMAlowGen = SMAsiteList.loc[SMAsiteList['Generation_Ratio'] < 0.75].copy()
+SMAlowGen.sort_values(by=['Generation_Ratio'], inplace=True)
+save_pd_data_frame_to_csv(pd_data_frame=SMAlowGen, name_append='SMA_Low_Production_Sites')
+save_pd_data_frame_to_csv(pd_data_frame=SMAsiteList, name_append='SMA_All_Sites')
 
-# todayString = datetime.datetime.now().strftime("%Y%m%d")
 
-# #get current date and time to use in output file name
-# timeString = datetime.datetime.now().strftime("%Y%m%d-%H%M")
-
-# #save processed data to excel file
-# folderSave = Path("OutputFiles")
-# saveName = timeString + '_SMA-Output'
-# saveLocation = folderSave/saveName
-# saveLocation = saveLocation.with_suffix(saveLocation.suffix + '.xlsx')
-
-# writer =  pd.ExcelWriter(saveLocation, engine='xlsxwriter')
-# SMAlowGen.to_excel(writer, sheet_name="Underperforming Sites")
-# SMAsiteList.to_excel(writer, sheet_name="All Sites")
-# writer.save()
-
-# #open excel file
-# os.startfile(saveLocation)
-
-#exit program
 print("**  SMA Sunny Portal AFL Bot script completed successfully.             **")
 print("**                                                                      **")
 print("**************************************************************************")

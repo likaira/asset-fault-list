@@ -10,8 +10,9 @@ Created on Thu NOv 28 12:08:12 2019
 
 v2- Updated input csv file to indicate Project Group for Hillsong site(s)
 v3 - Updated BOM ID's to be 6 characters long and used Selenium to extract BOM data
+v4 - Updated to run on Raspeberry Pi in headless mode
 """
-from selenium import webdriver
+#import packages
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
@@ -20,6 +21,14 @@ from pathlib import Path
 import time
 import datetime
 from progress.bar import Bar
+from run_browser import open_browser
+from bom_reader import get_bom_data
+from save_to_csv import save_pd_data_frame_to_csv
+
+#define urls
+init_url = "https://ennexos.sunnyportal.com/dashboard"
+base_url = "https://ennexos.sunnyportal.com/"
+end_url = "/monitoring/view-status-list"
 
 #print welcome statement
 print("**  Running the SMA ennexOS AFL Bot script...                           **")
@@ -28,87 +37,46 @@ print("**  Running the SMA ennexOS AFL Bot script...                           *
 directory = os.path.dirname(os.path.realpath(__file__))
 os.chdir(directory)
 
-#read login credentials from text file
-credentials = open('Credentials/credentials.txt', "r")
-lines = credentials.readlines()
-username = lines[0]
-password = lines[1]
-credentials.close()
+#read login credentials from Environment variables
+username = os.environ.get('ENNEX_USERNAME')
+password = os.environ.get('ENNEX_PASSWORD')
 
-#get day and month
-today = datetime.date.today()
-month = today.month
-day=today.day
-todayString = datetime.date.today().strftime("%Y%m%d")
+#function definitions
+#define a function to login to EnnexOS
+def login_to_portal(browser, username, password):
+    browser.find_element_by_name("username").send_keys(username)
+    browser.find_element_by_name("password").send_keys(password)
+    time.sleep(3)
+    browser.find_element_by_tag_name("button").click()
 
 #import site data from csv file 'ennex.csv'
-ennexList = pd.read_csv('Inputs/ennex.csv', header=0)
+ennexList = pd.read_csv('Inputs/test_ennex.csv', header=0)
 
-#add unique station url to stationId dataframe
-base_url = "http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=193&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num="
-ennexList['bom-Id']=ennexList['bom-Id'].apply(lambda x: '{0:0>6}'.format(x))        #make all ids 6 characters long
-ennexList['bom-url'] = base_url + ennexList['bom-Id']
-
-#initiliase variables
-index = 0
-irrad_yday = []
-actual_kWh = []
-
-
-#use Selenium to open BOM web and get weather data
-bar = Bar('Downloading data from BOM.gov.au', max = len(ennexList['bom-Id']))
-
-for url in ennexList['bom-url']:
-    driver = 'Driver/geckodriver.exe'
-    browser = webdriver.Firefox(executable_path=driver)
-    try:
-        browser.get(url)
-        time.sleep(10)
-        BOMdata = browser.page_source
-        soup = BeautifulSoup(BOMdata, 'lxml')    
-        BOMtable = soup.find_all('table')[0]
-        BOMdf = pd.read_html(str(BOMtable))[0]
-        irrad_value = BOMdf.iat[day-1,month]/3.6                    
-        #irrad_value = BOMdf.iat[30,9]
-        irrad_yday.append(irrad_value) 
-    except:
-        print("**  Error: Page load unsuccessful.                        **")
-        irrad_value = 0 
-        irrad_yday.append(irrad_value) 
+#Open ennexOS Page
+print("**  Opening SMA EnnexOS Portal...                                        **")
+try:
+    browser = open_browser(init_url)   
+except:
+    print("**  Error: Page load unsuccessful. Program will shutdown                       **")
     browser.close()
-    index = index + 1
-    bar.next()
- 
-    
-ennexList['irrad_yday'] = irrad_yday
-bar.finish()
-print("**  Weather data download successful                                    **")
+
+#Login to ennexOS    
+print("**  Logging in to SMA ennexOS...                                      **")
+try:
+    login_to_portal(browser=browser, username=username, password=password)
+except:
+    print("**  Error: Login unsuccessful. Program will shutdown                       **")
+    browser.close()
 
 #add unique siteId url to siteId dataframe
-init_url = "https://ennexos.sunnyportal.com/dashboard"
-base_url = "https://ennexos.sunnyportal.com/"
-end_url = "/monitoring/view-status-list"
 ennexList['ennex-Id']=ennexList['ennex-Id'].apply(lambda x: '{0:0>6}'.format(x))
 ennexList['ennex-url'] = base_url + ennexList['ennex-Id'] + end_url
 
-#use Selenium to open ennexOS webpage and login
-driver = 'Driver/geckodriver.exe'
-browser = webdriver.Firefox(executable_path=driver)
-browser.get(init_url)
-time.sleep(5)
-browser.find_element_by_name("username").send_keys(username)
-browser.find_element_by_name("password").send_keys(password)
-time.sleep(3)
-browser.find_element_by_tag_name("button").click()
-time.sleep(10)
-
 #download generation data for each site
 print("**  Downloading generation data from ennexOS                            **")
+actual_kWh = []
 for url in ennexList['ennex-url']:
-    try:
-        #open website and login
-        browser.get(url)
-        browser.find_element_by_tag_name("button").click()
+    try:        
         #download site html source and extract table
         time.sleep(10)
         result = browser.page_source
@@ -122,7 +90,6 @@ for url in ennexList['ennex-url']:
         generation.fillna(0)
         total = generation.sum()
         actual_kWh.append(total)
-
     
     except:
         #download site html source and extract table
@@ -142,8 +109,16 @@ for url in ennexList['ennex-url']:
 print("**  Generation data download successful                                 **")  
 browser.close()  
 
-#drop url columns
-drop_cols = ['bom-url' , 'ennex-url']
+
+#Get weather data from BOM
+link_to_stationIds = "Inputs/test_ennex_bom_urls.csv"
+bom_data = get_bom_data(link_to_stationIds)   
+ennexList['irrad_yday'] = bom_data
+
+print("**  Weather data download successful                                    **")
+
+#drop url column
+drop_cols = ['ennex-url']
 ennexList.drop(drop_cols, axis = 1, inplace=True)
 
 #calculate expected PV generation for yesterday
@@ -156,21 +131,11 @@ ennexList['expected-kWh'] = ennexList['irrad_yday'] * 6.5 * ennexList['PV_System
 ennexList['Generation_Ratio'] = ennexList['actual-kWh'].divide(ennexList['expected-kWh'], fill_value=0)
 ennexList.sort_values(by=['Generation_Ratio'], inplace=True)
 
-#get current date and time to use in output file name
-timeString = datetime.datetime.now().strftime("%Y%m%d-%H%M")
-
-#save processed data to excel file
-folderSave = Path("OutputFiles")
-saveName = timeString + '_ennex-Output'
-saveLocation = folderSave/saveName
-saveLocation = saveLocation.with_suffix(saveLocation.suffix + '.xlsx')
-
-writer =  pd.ExcelWriter(saveLocation, engine='xlsxwriter')
-ennexList.to_excel(writer, sheet_name="ennexOs Analysis")
-writer.save()
-
-#open excel file
-os.startfile(saveLocation)
+#output site list with generation values less 75% of expected values
+SMAlowGen = ennexList.loc[ennexList['Generation_Ratio'] < 0.75].copy()
+SMAlowGen.sort_values(by=['Generation_Ratio'], inplace=True)
+save_pd_data_frame_to_csv(pd_data_frame=SMAlowGen, name_append='Ennex_Low_Production_Sites')
+save_pd_data_frame_to_csv(pd_data_frame=ennexList, name_append='Ennex_All_Sites')
 
 #exit program
 print("**  SMA ennexOS AFL Bot script completed successfully.                  **")
