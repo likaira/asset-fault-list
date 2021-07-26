@@ -13,14 +13,11 @@ v3 - Updated BOM ID's to be 6 characters long and used Selenium to extract BOM d
 v4 - Updated to run on Raspeberry Pi in headless mode
 """
 #import packages
-from bs4 import BeautifulSoup
+
 import pandas as pd
 import os
-import requests as rq
-from pathlib import Path
-import time
-import datetime
 from progress.bar import Bar
+from download_ennex_generation_data import download_data
 from run_browser import open_browser
 from bom_reader import get_bom_data
 from save_to_csv import save_pd_data_frame_to_csv
@@ -38,77 +35,59 @@ directory = os.path.dirname(os.path.realpath(__file__))
 os.chdir(directory)
 
 #read login credentials from Environment variables
-username = os.environ.get('ENNEX_USERNAME')
-password = os.environ.get('ENNEX_PASSWORD')
+username = os.environ.get('SUNNY_USERNAME')
+password = os.environ.get('SUNNY_PASSWORD')
 
 #function definitions
 #define a function to login to EnnexOS
-def login_to_portal(browser, username, password):
-    browser.find_element_by_name("username").send_keys(username)
-    browser.find_element_by_name("password").send_keys(password)
-    time.sleep(3)
-    browser.find_element_by_tag_name("button").click()
+# def login_to_portal(browser, username, password):
+#     try: #Accept cookies (if Cookies banner exists)
+#         browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
+#         time.sleep(1)
+#     except:
+#         pass
+#     browser.find_element_by_name("username").send_keys(username)
+#     browser.find_element_by_name("password").send_keys(password)
+#     time.sleep(2)
+#     browser.find_element_by_tag_name("button").click()
 
 #import site data from csv file 'ennex.csv'
 ennexList = pd.read_csv('Inputs/test_ennex.csv', header=0)
 
 #Open ennexOS Page
-print("**  Opening SMA EnnexOS Portal...                                        **")
-try:
-    browser = open_browser(init_url)   
-except:
-    print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-    browser.close()
+# print("**  Opening SMA EnnexOS Portal...                                        **")
+# try:
+#     browser = open_browser(init_url)   
+#     try: #Accept cookies (if Cookies banner exists)
+#         browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
+#         time.sleep(1)
+#     except:
+#         pass
+# except:
+#     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
+#     browser.close()
 
-#Login to ennexOS    
-print("**  Logging in to SMA ennexOS...                                      **")
-try:
-    login_to_portal(browser=browser, username=username, password=password)
-except:
-    print("**  Error: Login unsuccessful. Program will shutdown                       **")
-    browser.close()
+# #Login to ennexOS    
+# print("**  Logging in to SMA ennexOS...                                      **")
+# try:
+#     login_to_portal(browser=browser, username=username, password=password)
+# except:
+#     print("**  Error: Login unsuccessful. Program will shutdown                       **")
+#     exit
+#     browser.close()
 
 #add unique siteId url to siteId dataframe
 ennexList['ennex-Id']=ennexList['ennex-Id'].apply(lambda x: '{0:0>6}'.format(x))
 ennexList['ennex-url'] = base_url + ennexList['ennex-Id'] + end_url
 
 #download generation data for each site
-print("**  Downloading generation data from ennexOS                            **")
+bar = Bar('Downloading generation data from ennexOs', max = len(ennexList['ennex-url']))
 actual_kWh = []
 for url in ennexList['ennex-url']:
-    try:        
-        #download site html source and extract table
-        time.sleep(10)
-        result = browser.page_source
-        soup = BeautifulSoup(result, 'lxml')
-        table = soup.find_all('table')
-        data = pd.read_html(str(table))
-        ennexdf = data[0]        
-        #get previous day generation values in [kWh]
-        generation = ennexdf.iloc[:,-5]
-        generation = pd.to_numeric(generation, errors='coerce')
-        generation.fillna(0)
-        total = generation.sum()
-        actual_kWh.append(total)
-    
-    except:
-        #download site html source and extract table
-        time.sleep(10)
-        result = browser.page_source
-        soup = BeautifulSoup(result, 'lxml')
-        table = soup.find_all('table')
-        data = pd.read_html(str(table))
-        ennexdf = data[0]
-        #get previous day generation values in [kWh]
-        generation = ennexdf.iloc[:,-5]
-        generation = pd.to_numeric(generation, errors='coerce')
-        generation.fillna(0)
-        total = generation.sum()
-        actual_kWh.append(total)
-    
-print("**  Generation data download successful                                 **")  
-browser.close()  
+    download_data(url=url, username=username, password=password)
+    bar.next()
 
+print("**  Generation data download successful                                 **")  
 
 #Get weather data from BOM
 link_to_stationIds = "Inputs/test_ennex_bom_urls.csv"
@@ -117,9 +96,13 @@ ennexList['irrad_yday'] = bom_data
 
 print("**  Weather data download successful                                    **")
 
-#drop url column
-drop_cols = ['ennex-url']
+#combine ennexList and bom_data dataframes 
+ennexList = pd.merge(ennexList, bom_data, on='PV_System')
+
+#drop unwanted columns
+drop_cols = ['ennex-url', 'Id', 'url']
 ennexList.drop(drop_cols, axis = 1, inplace=True)
+
 
 #calculate expected PV generation for yesterday
 #kWh/m^2 * m^2/kW * kW * efficiency
@@ -132,9 +115,9 @@ ennexList['Generation_Ratio'] = ennexList['actual-kWh'].divide(ennexList['expect
 ennexList.sort_values(by=['Generation_Ratio'], inplace=True)
 
 #output site list with generation values less 75% of expected values
-SMAlowGen = ennexList.loc[ennexList['Generation_Ratio'] < 0.75].copy()
-SMAlowGen.sort_values(by=['Generation_Ratio'], inplace=True)
-save_pd_data_frame_to_csv(pd_data_frame=SMAlowGen, name_append='Ennex_Low_Production_Sites')
+ennexLowGen = ennexList.loc[ennexList['Generation_Ratio'] < 0.75].copy()
+ennexLowGen.sort_values(by=['Generation_Ratio'], inplace=True)
+save_pd_data_frame_to_csv(pd_data_frame=ennexLowGen, name_append='Ennex_Low_Production_Sites')
 save_pd_data_frame_to_csv(pd_data_frame=ennexList, name_append='Ennex_All_Sites')
 
 #exit program

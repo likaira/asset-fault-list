@@ -115,7 +115,7 @@ length = len(SMAdf.columns)
 drop_cols = list(range(3,length))
 SMAdf.drop(SMAdf.columns[drop_cols], axis = 1, inplace=True)
 
-#combine SMAdf and bom_data dataframes to new dataframae: SMAsiteList
+#combine SMAdf and bom_data dataframes to new dataframe: SMAsiteList
 SMAsiteList = pd.merge(SMAdf, bom_data, on='PV System')
 unwantedColumns = [3,4]
 SMAsiteList.drop(SMAsiteList.columns[unwantedColumns], axis = 1, inplace=True)
