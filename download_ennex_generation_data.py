@@ -18,8 +18,7 @@ def login_to_portal(browser, username, password):
 #define a function to download system generation data from ennexOS
 def download_data(url, username, password):
     try: 
-        browser =  open_browser(url)  
-        print("**  Logging in to SMA ennexOS...                                      **")
+        browser =  open_browser(url)          
         try:
             login_to_portal(browser=browser, username=username, password=password)
         except:
@@ -41,6 +40,7 @@ def download_data(url, username, password):
         total = generation.sum()    
         browser.close()    
     except:
-        #if page does not load, use 0kWh as total generation        
+        #if page does not load, use 0kWh as total generation     
+        print("**  Error: Page load unsuccessful.                             **")    
         total = 0
     return total

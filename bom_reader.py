@@ -1,7 +1,5 @@
 import pandas as pd
 import datetime, time
-import os
-from pathlib import Path
 from progress.bar import Bar
 from run_browser import open_browser
 from bs4 import BeautifulSoup
@@ -38,11 +36,12 @@ def get_bom_data(link_to_stationIds):
             irrad_value = BOMdf.iat[day-1,month]/3.6                    
             #irrad_value = BOMdf.iat[30,9]
             irrad_yday.append(irrad_value) 
+            browser.close() 
         except:
             print("**  Error: Page load unsuccessful.                        **")
             irrad_value = 0 
             irrad_yday.append(irrad_value) 
-        browser.close()    
+            browser.close()            
         index = index + 1
         bar.next()
 
