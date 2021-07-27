@@ -2,8 +2,8 @@
 """
 Spyder Editor
 
-This is a Solar Analytics Webscrapper script file
-This script utilises Selenium to read the SolarAnalytics site status page
+This is a Solar Analytics API script file, used to obtain site status information
+https://solaranalytics.zendesk.com/hc/en-gb/articles/4402341931033-Solar-Analytics-Public-API
 
 Changelog
 v1 : Initial version
@@ -41,8 +41,7 @@ response = rq.get(url, auth=(username, password))
 if response.status_code == 200:
     parsed = js.loads(response.content)   
     SolarAnalyticsdf = pd.json_normalize(parsed, record_path=['data']) 
-    print(SolarAnalyticsdf)
-    
+        
 else:
     print("Error running API - please check API documentation for any changes")
 

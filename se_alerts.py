@@ -2,9 +2,9 @@
 """
 Spyder Editor
 
-Site Energy - Time Period
+This is a Solaredge API script file, used to get Open Site Alerts
+https://www.solaredge.com/sites/default/files/se-monitoring-platform-b2b-api-update-application-note.pdf
 
-This is a Solaredge API script file to 
 """
 import requests as rq
 import json as js
@@ -14,7 +14,7 @@ import os
 API_KEY = os.environ.get('SE_API_KEY')
 
 #print program introduction
-print("This program returns the details of a site such as name, locations, active alerts etc")
+print("This program returns the list of open alerts for the site provided")
 
 #enter site(s) id
 siteId = input("Enter site ID: ")
@@ -34,7 +34,7 @@ if response.status_code == 200:
     parsed = js.loads(response.content)         
     print(js.dumps(parsed, indent=4, sort_keys=True))
 else:
-    print("Error running API - please check Site Id and API KEY are valid")
+    print("Error running API - please check API documentation for any changes")
 
 #prompt user to close program
 input("Press enter to exit")
