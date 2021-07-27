@@ -36,8 +36,7 @@ def login_to_solarweb(browser, username, password):
         pass
     time.sleep(3)
     browser.find_element_by_id("submitButton").click()
-    time.sleep(10)
-    
+    time.sleep(10)    
     #accept cookies
     try:        
         browser.find_element_by_css_selector("#CybotCookiebotDialogBodyButtonAccept").click()
@@ -45,15 +44,11 @@ def login_to_solarweb(browser, username, password):
     except:        
         pass
     
-    #after login, wait for homepage to load and and select 'Show All' in 'PV System Overview' page
-    time.sleep(10)
-    browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
-    # try:
-    #     timeout = 60 
-    #     WebDriverWait(browser, timeout).until(EC.presence_of_element_located((By.ID, 'js-pvsystem-tableid')))                  #wait for page to load            
-    # except TimeoutException:
-    #     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-    #     browser.close()    
-    # finally:
-    #     browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
-    #     print("Login Successful")
+
+#define a function to login to Solar Analytics
+def login_to_solar_analytics(browser, username, password):  
+    browser.find_element_by_id("email").send_keys(username)
+    browser.find_element_by_id("password").send_keys(password)    
+    time.sleep(2)
+    browser.find_element_by_xpath('/html/body/div/div/div/div[2]/div/form/div[5]/div/button').click()
+    time.sleep(5)                  #wait for page to load

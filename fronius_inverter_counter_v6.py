@@ -25,7 +25,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import os
 import time
-import datetime
 
 
 #print welcome statement
@@ -39,9 +38,6 @@ os.chdir(directory)
 username = os.environ.get('FRONIUS_USERNAME')
 password = os.environ.get('FRONIUS_PASSWORD')
 
-
-#use Selenium to open Fronius and extract site ids
-print("**  Opening Fronius Solar.Web...                                        **")
   
 #open Fronius Solar Web 
 browser = open_browser("https://www.solarweb.com/PvSystems/Widgets")
@@ -56,6 +52,8 @@ except:
 
 #login to Solar Web and select 'Show All' in 'PV System Overview' page
 login_to_solarweb(browser=browser, username=username, password=password)
+time.sleep(10)
+browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
 
 #download site html source and extract table
 time.sleep(2)
@@ -137,8 +135,6 @@ Froniusdf['Inverter_Availability'].fillna(0)
 #close browser
 browser.close()
 
-#get current date and time to use in output file name
-timeString = datetime.datetime.now().strftime("%Y%m%d-%H%M")
 
 #save processed data to csv file 
 save_pd_data_frame_to_csv(pd_data_frame=Froniusdf, name_append='_Fronius-InverterCounter')
