@@ -29,8 +29,9 @@ from bs4 import BeautifulSoup
 from run_browser import open_browser
 from bom_reader import get_bom_data
 from save_to_csv import save_pd_data_frame_to_csv
+from login_to_portal import login_to_sma
 import pandas as pd
-import datetime, time
+import time
 import os
 from pathlib import Path
 from progress.bar import Bar
@@ -48,15 +49,6 @@ password = os.environ.get('SUNNY_PASSWORD')
 
 #function definitions
 
-#define a function to login to Sunny Portal
-def login_to_portal(browser, username, password):
-    browser.find_element_by_id("txtUserName").send_keys(username)
-    browser.find_element_by_id("txtPassword").send_keys(password)
-    browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_MemorizePassword"]').click()
-    time.sleep(2)
-    browser.find_element_by_xpath('//*[@id="ctl00_ContentPlaceHolder1_Logincontrol1_LoginBtn"]').click()
-
-
 #Open Sunny Portal Page
 print("**  Opening SMA Sunny Portal...                                         **")
 try:
@@ -68,12 +60,12 @@ try:
         pass        
 except:         #fail safe execution   
     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-    browser.close()
+    exit
 
 #Login to Sunny Portal    
 print("**  Logging in to SMA Sunny Portal...                                      **")
 try:
-    login_to_portal(browser=browser, username=username, password=password)
+    login_to_sma(browser=browser, username=username, password=password)
 except:
     print("**  Error: Login unsuccessful. Program will shutdown                       **")
     browser.close()

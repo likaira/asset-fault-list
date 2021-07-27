@@ -2,25 +2,15 @@ import time
 import pandas as pd
 from bs4 import BeautifulSoup
 from run_browser import open_browser
+from login_to_portal import login_to_ennexOS
 
-#define a function to login to EnnexOS
-def login_to_portal(browser, username, password):
-    try: #Accept cookies (if Cookies banner exists)
-        browser.find_element_by_xpath('//*[@id="onetrust-accept-btn-handler"]').click()
-        time.sleep(1)
-    except:
-        pass
-    browser.find_element_by_name("username").send_keys(username)
-    browser.find_element_by_name("password").send_keys(password)
-    time.sleep(2)
-    browser.find_element_by_tag_name("button").click()
 
 #define a function to download system generation data from ennexOS
 def download_data(url, username, password):
     try: 
         browser =  open_browser(url)          
         try:
-            login_to_portal(browser=browser, username=username, password=password)
+            login_to_ennexOS(browser=browser, username=username, password=password)
         except:
             print("**  Error: Login unsuccessful. Program will shutdown                       **")            
             browser.close()

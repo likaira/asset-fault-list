@@ -18,11 +18,12 @@ v4 - updated to match the new layout in the SolarWeb Analysis page
 V5 - changed the data extraction provcessing when counting the number of online inverters
 v6 - updated to run on Raspberry Pi
 """
-from selenium import webdriver
+from run_browser import open_browser
+from login_to_portal import login_to_solarweb
+from save_to_csv import save_pd_data_frame_to_csv
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
-from pathlib import Path
 import time
 import datetime
 
@@ -35,63 +36,34 @@ directory = os.path.dirname(os.path.realpath(__file__))
 os.chdir(directory)
 
 #read login credentials from Environment variables
-username = os.environ['FRONIUS_USERNAME']
-password = os.environ['FRONIUS_PASSWORD']
+username = os.environ.get('FRONIUS_USERNAME')
+password = os.environ.get('FRONIUS_PASSWORD')
 
 
 #use Selenium to open Fronius and extract site ids
 print("**  Opening Fronius Solar.Web...                                        **")
+  
+#open Fronius Solar Web 
+browser = open_browser("https://www.solarweb.com/PvSystems/Widgets")
+
+
+#accept cookies
 try:
-    try:            #try Firefox browser
-        driver = 'Driver/geckodriver.exe'
-        browser = webdriver.Firefox(executable_path=driver)
-    except:         #try Chrome browser        
-        driver = 'Driver/chromedriver.exe'
-        browser = webdriver.Chrome(executable_path=driver)
-    #open Fronius Solar Web and login
-    browser.get("https://www.solarweb.com/PvSystems/Widgets")
+    browser.find_element_by_xpath("/html/body/header/div[1]/div/p[2]/button").click()
     time.sleep(3)
-    
-    #accept cookies
-    try:
-        browser.find_element_by_xpath("/html/body/header/div[1]/div/p[2]/button").click()
-        time.sleep(3)
-    except:
-        pass
-    
-    #login
-    browser.find_element_by_id("username").send_keys(username)
-    browser.find_element_by_id("password").send_keys(password)
-    time.sleep(3)
-    browser.find_element_by_id("submitButton").click()
-    time.sleep(10)
-    
-    #accept cookies
-    try:
-        #browser.current_window_handle(browser.find_element_by_css_selector("#CybotCookiebotDialogBodyButtonAccept").click())
-        browser.find_element_by_css_selector("#CybotCookiebotDialogBodyButtonAccept").click()
-        time.sleep(3)
-    except:
-        time.sleep(3)
-        pass
-
-    #select 'Show All' in Fronius page, after waiting 15 seconds for page to load
-    try:
-        browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
-    except:
-        print("Error: Page load unsuccessful. Portal might be down, please try again later.")
-        exit
-
-    #download site html source and extract table
-    time.sleep(2)
-    result = browser.page_source
-    soup = BeautifulSoup(result, 'lxml')
-    table = soup.find_all('table')
-    data = pd.read_html(str(table))
-    Froniusdf = data[0]
 except:
-    print("Error: Page load unsuccessful. Program will shutdown")
-    exit
+    pass
+
+#login to Solar Web and select 'Show All' in 'PV System Overview' page
+login_to_solarweb(browser=browser, username=username, password=password)
+
+#download site html source and extract table
+time.sleep(2)
+result = browser.page_source
+soup = BeautifulSoup(result, 'lxml')
+table = soup.find_all('table')
+data = pd.read_html(str(table))
+Froniusdf = data[0]
 
 #drop unwanted columns
 dropCols = ['Unnamed: 0', 'kWh/kWp', 'kWh Today', 'Last update', 'Errors (today)']
@@ -105,7 +77,7 @@ print("**  InverterCounter is running...                                       *
 print("**                                                                      **")
 InverterCounter = []
 
-for site in Froniusdf['PV system']:                 
+for site in Froniusdf['PV system'][0:3]:                 
     try:
         site = f'"{site}"'              #format site name to append inverted commas, allows for more specific searching on Fronius portal
         browser.find_element_by_id("pvsystem-search").send_keys(site)                #search for individual site
@@ -168,19 +140,9 @@ browser.close()
 #get current date and time to use in output file name
 timeString = datetime.datetime.now().strftime("%Y%m%d-%H%M")
 
-#save processed data to excel file and open the excel file
-folderSave = Path("OutputFiles")
+#save processed data to csv file 
+save_pd_data_frame_to_csv(pd_data_frame=Froniusdf, name_append='_Fronius-InverterCounter')
 
-saveName = timeString + '_Fronius-InverterCounter'
-saveLocation = folderSave/saveName
-saveLocation = saveLocation.with_suffix(saveLocation.suffix + '.xlsx')
-
-writer =  pd.ExcelWriter(saveLocation, engine='xlsxwriter')
-Froniusdf.to_excel(writer, sheet_name="Inverter Counter")
-writer.save()
-
-#open excel file
-os.startfile(saveLocation)
 
 #exit program
 print("**  Fronius Inverter Counter AFL Bot script completed successfully.     **")
