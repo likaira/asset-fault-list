@@ -1,4 +1,5 @@
 import time
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -45,12 +46,14 @@ def login_to_solarweb(browser, username, password):
         pass
     
     #after login, wait for homepage to load and and select 'Show All' in 'PV System Overview' page
-    try:
-        timeout = 30 
-        WebDriverWait(browser, timeout).until(EC.presence_of_element_located((By.ID, 'js-pvsystem-tableid')))                  #wait for page to load            
-    except TimeoutException:
-        print("**  Error: Page load unsuccessful. Program will shutdown                       **")
-        browser.close()    
-    finally:
-        browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
-        print("Login Successful")
+    time.sleep(10)
+    browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
+    # try:
+    #     timeout = 60 
+    #     WebDriverWait(browser, timeout).until(EC.presence_of_element_located((By.ID, 'js-pvsystem-tableid')))                  #wait for page to load            
+    # except TimeoutException:
+    #     print("**  Error: Page load unsuccessful. Program will shutdown                       **")
+    #     browser.close()    
+    # finally:
+    #     browser.find_element_by_xpath("//select[@name='js-pvsystem-table-id_length']/option[text()='All']").click()
+    #     print("Login Successful")
