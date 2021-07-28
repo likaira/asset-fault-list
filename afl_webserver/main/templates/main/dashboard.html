@@ -1,0 +1,69 @@
+{% extends "main/index.html" %}
+{% load static %}
+
+{% block content %}
+
+
+
+<div class="row">
+
+    <!-- Number of PV Systems -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">                    
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">PV Systems</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="{% url 'pvsystems_list' %}" class="stretched-link">{{ num_of_pv_systems }}</a>
+                        </div>                            
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-sun fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Logs -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Error Logs</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="#" class="stretched-link">{{ num_of_error_logs }}</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-server fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faults -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Faults</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="#" class="stretched-link">{{ num_of_faults }}</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-wrench fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}

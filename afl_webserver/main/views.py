@@ -16,8 +16,10 @@ def dashboard(request):
     context ={
         "title": "Dashboard",
         "num_of_pv_systems": PVSystem.objects.count(),
+        "num_of_error_logs": 17,
+        "num_of_faults": 5,        
     }
-    return render(request, 'main/index.html', context)
+    return render(request, 'main/dashboard.html', context)
 
 """
 Create Views
