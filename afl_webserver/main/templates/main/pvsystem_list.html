@@ -15,7 +15,8 @@
                 <thead>
                     <tr>                        
                         <th scope="col">Name</th>                           
-                        <th scope="col">Inverter</th>                           
+                        <th scope="col">Inverter</th> 
+                        <th scope="col">Link to portal</th>                          
                         <!-- <th scope="col">Link to portal</th>                             
                         <th scope="col">Link to Salesforce</th> 
                         <th scope="col">DC Size</th>                           
@@ -28,6 +29,7 @@
                     <tr>                        
                         <td><a href="{{ pvSystem.get_absolute_url }}">{{ pvSystem }}</a></td>
                         <td>{{ pvSystem.get_inverter_display }}</td>
+                        <td><a href="{{ pvSystem.link_to_portal }}">link_to_portal</a></td>
                         <!-- <td>{% if pvSystem.email %}<a href="mailto: {{ pvSystem.email }}">{{ pvSystem.email }}</a>{% else %} - {% endif %}</td>
                         <td>{% if pvSystem.phone %}<a href="tel: {{ pvSystem.phone }}">{{ pvSystem.phone }}</a>{% else %} - {% endif %}</td> 
                         <td>{{ pvSystem.city }}, {{ pvSystem.country }}</td>
