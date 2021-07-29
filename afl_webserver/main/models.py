@@ -28,6 +28,7 @@ class PVSystem(models.Model):
     link_to_salesforce = models.URLField(null=True, blank=True, verbose_name='Link to Salesforce Project Opportunity')
     dc_size = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
     ac_size = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+    bom_id = models.IntegerField(null=True, blank=True)
     vendor = models.CharField(
         max_length=128,
         null=True,

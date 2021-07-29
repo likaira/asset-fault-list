@@ -4,10 +4,9 @@
 {% block content %}
 
 
-
+<!-- Sites Summary -->
 <div class="row">
-
-    <!-- Number of PV Systems -->
+    <!-- PV Systems -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">                    
@@ -26,44 +25,163 @@
         </div>
     </div>
 
-    <!-- Error Logs -->
+    <!-- Lighting -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Error Logs</div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Lighting</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                             <a href="#" class="stretched-link">{{ num_of_error_logs }}</a>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fa fa-server fa-2x text-gray-300"></i>
+                        <i class="fa fa-lightbulb fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Faults -->
+    <!-- Other -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Faults</div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Other</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                             <a href="#" class="stretched-link">{{ num_of_faults }}</a>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-wrench fa-2x text-gray-300"></i>
+                        <i class="fas fa-question fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Logs Summary -->
+<div class="row">    
+    <!-- Today -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">                    
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Logs - Today</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="{% url 'pvsystems_list' %}" class="stretched-link">{{ num_of_pv_systems }}</a>
+                        </div>                            
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-clock fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- This Week -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Logs - This Week</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="#" class="stretched-link">{{ num_of_error_logs }}</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-calendar-times fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Time -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Logs - All Time</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="#" class="stretched-link">{{ num_of_faults }}</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+
+<!-- Faults Summary -->
+<div class="row">    
+    <!-- Today -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">                    
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Faults - Today</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="{% url 'pvsystems_list' %}" class="stretched-link">{{ num_of_pv_systems }}</a>
+                        </div>                            
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- This Week -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Faults - This Week</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="#" class="stretched-link">{{ num_of_error_logs }}</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-calendar-times fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Time -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Faults - All Time</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <a href="#" class="stretched-link">{{ num_of_faults }}</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

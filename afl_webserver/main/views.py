@@ -38,7 +38,7 @@ Detail Views
 """
 class PVSystemDetailView(DetailView):
     model = PVSystem
-    template_name = 'main/pvsystem_list.html'
+    template_name = 'main/pvsystem_detail.html'
 
     def get_context_data(self, **kwargs):
         pv_system = PVSystem.objects.get(pk=self.kwargs['pk'])

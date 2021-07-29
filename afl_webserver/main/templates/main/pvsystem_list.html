@@ -1,0 +1,62 @@
+{% extends "main/index.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Inverter List Table-->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{ title }}</h6>
+    </div>
+    <div class="card-body"> 
+        <!-- Table Data -->
+        <div class="table-responsive">
+            <table class="table table-bordered display" id="pv_system_list" width="100%" cellspacing="0">
+                <thead>
+                    <tr>                        
+                        <th scope="col">Name</th>                           
+                        <th scope="col">Inverter</th>                           
+                        <!-- <th scope="col">Link to portal</th>                             
+                        <th scope="col">Link to Salesforce</th> 
+                        <th scope="col">DC Size</th>                           
+                        <th scope="col">AC Size</th>  -->
+                                                    
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pvSystem in object_list %}
+                    <tr>                        
+                        <td><a href="{{ pvSystem.get_absolute_url }}">{{ pvSystem }}</a></td>
+                        <td>{{ pvSystem.get_inverter_display }}</td>
+                        <!-- <td>{% if pvSystem.email %}<a href="mailto: {{ pvSystem.email }}">{{ pvSystem.email }}</a>{% else %} - {% endif %}</td>
+                        <td>{% if pvSystem.phone %}<a href="tel: {{ pvSystem.phone }}">{{ pvSystem.phone }}</a>{% else %} - {% endif %}</td> 
+                        <td>{{ pvSystem.city }}, {{ pvSystem.country }}</td>
+                        <td><a href="#">{{ pvSystem.sites|length }}</a></td>                         -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!--Pagination-->
+        {% if is_paginated %}
+        <hr>
+        <nav aria-label="Page navigation">
+            <a class="btn btn-outline-info mb-4 mr-2" href="?page=1">First</a>
+        
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+        
+            <a class="btn btn-outline-info mb-4 ml-2" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            <p class="ml-auto">
+                Showing {{page_obj.start_index}} to {{page_obj.end_index}} of {{ paginator.count }} entries
+            </p>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
