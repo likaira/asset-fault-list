@@ -10,6 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="https://www.verdia.com.au/wp-content/uploads/2017/10/verdia-icon.png">
+    <link rel="apple-touch-icon" href="https://www.verdia.com.au/wp-content/uploads/2017/10/verdia-icon.png"/>
 
     {% if title %}        
         <title>{{ title }}</title>
@@ -59,74 +61,79 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                Asset Management
-            </div>
-
-            <!-- Nav Item - PV Systems Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="{% url 'pvsystems_list'}" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fa fa-sun"></i>
-                    <span>PV Systems</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Sites:</h6>
-                        <a class="collapse-item" href="{% url 'pvsystems_list'}">All Sites</a>
-                        <a class="collapse-item" href="#">Spare 1</a>
-                        <a class="collapse-item" href="#">Spare 2</a>
-                    </div>
-                </div>
-            </li>
+                FAULT MANAGEMENT
+            </div>           
 
             <!-- Nav Item - Lighting Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fa fa-lightbulb"></i>
-                    <span>Lighting</span>
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLogs"
+                    aria-expanded="true" aria-controls="collapseLogs">
+                    <i class="fa fa-server"></i>
+                    <span>Error Logs</span></a>
                 </a>
-                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
+                <div id="collapseLogs" class="collapse" aria-labelledby="headingUtilities"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Sites:</h6>
-                        <a class="collapse-item" href="#">All Sites</a>
-                        <a class="collapse-item" href="#">Spare 1</a>
-                        <a class="collapse-item" href="#">Spare 2</a>
+                        <h6 class="collapse-header">Date created:</h6>
+                        <a class="collapse-item" href="#">Today</a>
+                        <a class="collapse-item" href="#">This week</a>
+                        <a class="collapse-item" href="#">All of time</a>
                     </div>
                 </div>
             </li>
+
+            
+
+            <!-- Nav Item - Lighting Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFaults"
+                    aria-expanded="true" aria-controls="collapseFaults">
+                    <i class="fa fa-wrench"></i>
+                    <span>Faults</span></a>
+                </a>
+                <div id="collapseFaults" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Date created:</h6>
+                        <a class="collapse-item" href="#">Today</a>
+                        <a class="collapse-item" href="#">This week</a>
+                        <a class="collapse-item" href="#">All of time</a>
+                    </div>
+                </div>
+            </li>                  
+
+
+           
 
             <!-- Divider -->
             <hr class="sidebar-divider">
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                FAULT MANAGEMENT
+                Asset Management
             </div>
-            
 
-            <!-- Nav Item - Error Logs -->
+            <!-- Nav Item - PV Systems -->
             <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fa fa-server"></i>
-                    <span>Error Logs</span></a>
-            </li>
-
-            <!-- Nav Item - Faults -->
-            <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{% url 'pvsystems_list'}">
                     <i class="fa fa-wrench"></i>
-                    <span>Faults</span></a>
+                    <span>PV Systems</span></a>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
+            <!-- Nav Item - Lighting -->
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fa fa-lightbulb"></i>
+                    <span>Lighting</span></a>
+            </li>
 
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>           
+             <!-- Divider -->
+             <hr class="sidebar-divider d-none d-md-block">
+
+             <!-- Sidebar Toggler (Sidebar) -->
+             <div class="text-center d-none d-md-inline">
+                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
+             </div>              
 
         </ul>
         <!-- End of Sidebar -->
@@ -190,9 +197,9 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">User </span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">User Name </span>
                                 <img class="img-profile rounded-circle"
-                                    src="#">
+                                    src="{% static 'main/img/undraw_profile.svg' %}">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
