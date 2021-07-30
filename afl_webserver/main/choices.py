@@ -1,5 +1,5 @@
 #Define model choices in this file
-
+#Model - PVSystem; field - inverter
 SMA = 'SM'
 FRONIUS = 'FR'
 SOLAREDGE = 'SO'
@@ -14,3 +14,5 @@ INVERTER_MANUFACTURER_CHOICES = [
     (OTHER, 'Other'),
     (NOT_APPLICABLE, 'Not Applicable'),
 ]
+
+#Model - ErrorLog; field - fault_type

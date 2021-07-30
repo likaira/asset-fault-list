@@ -47,3 +47,24 @@ class PVSystem(models.Model):
     def get_absolute_url(self):
         return reverse('pvsystem_detail', kwargs={'pk': self.pk})
 
+#Error Log
+class ErrorLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pvsystem = models.ForeignKey(PVSystem, on_delete=models.RESTRICT)
+    date_detected = models.DateField(auto_created=True)
+    date_occurred = models.DateField(auto_now=False, null=True, blank=True)
+    is_fault = models.BooleanField(default=False)
+    fault_type = models.CharField(max_length=128)   
+    description = models.CharField(max_length=128, null=True, blank=True)
+    device = models.CharField(max_length=128, null=True, blank=True)
+
+    class Meta:
+        verbose_name="Error Log"
+        verbose_name_plural="Error Logs"
+        ordering = ['-date_detected']
+
+    def __str__(self):
+        return f'{self.pvsystem} {self.fault_type} - {self.date_detected}'
+
+    def get_absolute_url(self):
+        return reverse('errorlog_detail', kwargs={'pk': self.pk})
